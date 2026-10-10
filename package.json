@@ -1,21 +1,32 @@
 {
   "name": "pi-run-code",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A pi extension that adds a dsh-inspired run_code tool for executing TypeScript programs against coding tools.",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "files": ["dist", "README.md", "LICENSE"],
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.json && cp src/worker.mjs dist/worker.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "npm run build && node --test test/*.test.mjs",
     "prepublishOnly": "npm run build"
   },
-  "keywords": ["pi", "pi-extension", "coding-agent", "run-code"],
+  "keywords": [
+    "pi",
+    "pi-extension",
+    "coding-agent",
+    "run-code"
+  ],
   "license": "MIT",
   "pi": {
-    "extensions": ["./dist/index.js"]
+    "extensions": [
+      "./dist/index.js"
+    ]
   },
   "peerDependencies": {
     "@earendil-works/pi-coding-agent": "*",
@@ -23,9 +34,15 @@
     "typebox": "*"
   },
   "peerDependenciesMeta": {
-    "@earendil-works/pi-coding-agent": { "optional": true },
-    "@earendil-works/pi-tui": { "optional": true },
-    "typebox": { "optional": true }
+    "@earendil-works/pi-coding-agent": {
+      "optional": true
+    },
+    "@earendil-works/pi-tui": {
+      "optional": true
+    },
+    "typebox": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@earendil-works/pi-coding-agent": "^0.85.1",
