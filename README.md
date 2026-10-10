@@ -5,6 +5,7 @@
 ## 功能
 
 - 注册模型可调用的 `run_code` 工具。
+- **仅在需要组合多个工具时调用：** 单次读取、搜索或命令应直接调用对应工具，不要把单个工具调用包进 `run_code`。
 - 在独立 Node worker 中执行 TypeScript 异步函数体，支持顶层 `await` 与 `return`。
 - 将当前 pi 的 built-in coding tools 暴露为 `tools.read(...)`、`tools.bash(...)`、`tools.edit(...)` 等异步函数。
 - 捕获 `console.log/info/warn/error/debug` 和 `process.stdout/stderr` 输出。

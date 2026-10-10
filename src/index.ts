@@ -181,15 +181,15 @@ function buildSdkPrompt(definitions: Record<string, ToolDefinition>, names: stri
     .map((name) => sourceDescription(name, definitions[name]!));
   if (entries.length === 0) return "";
   const directRule = mode === "ptc"
-    ? `In this session, \`${RUN_CODE_NAME}\` is the only tool callable directly. The bindings below are program-only; call them from inside \`${RUN_CODE_NAME}\`.`
-    : `You may call the bindings below from inside \`${RUN_CODE_NAME}\` to compose several operations into one step.`;
+    ? `In this session, \`${RUN_CODE_NAME}\` is the only tool callable directly. The bindings below are program-only; call them from inside \`${RUN_CODE_NAME}\`. Prefer one program that composes several bindings over repeated single-binding runs.`
+    : `Call \`${RUN_CODE_NAME}\` only when one program must combine several of the bindings below, or when their results need local filtering, mapping, counting, or aggregation. For a single read, search, or command, call that tool directly instead of wrapping it in \`${RUN_CODE_NAME}\`.`;
   return [
     PROMPT_MARKER,
     "## Program tool API",
     directRule,
     "`run_code` executes the BODY of an async TypeScript function in a fresh worker. Write statements directly; top-level `await` and `return` work. Each call starts with new program state.",
     "Call each binding with one JSON-compatible argument: `await tools.name(args)`. Follow the declarations below for exact names and argument shapes.",
-    "Use `console.log(...)` and/or `return` to curate the small result sent back to the model. Prefer filtering, mapping, counting, and aggregating inside one run rather than returning large raw files or command output.",
+    "Use `console.log(...)` and/or `return` to curate the small result sent back to the model. Prefer one composed run that filters, maps, counts, and aggregates over several single-tool calls, and never return large raw files or command output.",
     "Binding failures reject with `ToolCallError`; catch them when partial results or recovery are useful, and inspect `error.toolName` and `error.message`.",
     "```typescript",
     "type JsonValue = null | boolean | number | string | JsonValue[] | { [key: string]: JsonValue };",
@@ -198,8 +198,7 @@ function buildSdkPrompt(definitions: Record<string, ToolDefinition>, names: stri
     ...entries,
     "};",
     "```",
-    "Example: `return await tools.read({ path: \"src/index.ts\" });`",
-    "Example with composition: `const matches = await tools.grep({ pattern: \"TODO\", path: \"src\" }); return matches;`",
+    "Example with composition: `const matches = await tools.grep({ pattern: \"TODO\", path: \"src\" }); const files = await tools.ls({ path: \"src\" }); return { matches, fileCount: files.length };`",
     "Example with recovery: `try { return await tools.read({ path: \"missing.txt\" }); } catch (error) { const failure = error as ToolCallError; return { tool: failure.toolName, message: failure.message }; }`",
     PROMPT_MARKER,
   ].join("\n");
@@ -381,13 +380,17 @@ export default function runCodeExtension(pi: ExtensionAPI): void {
     name: RUN_CODE_NAME,
     label: "Run Code",
     description:
-      "Execute TypeScript against pi's available coding tools. Pass `code` as the BODY of an async function; " +
-      "top-level `await` and `return` work. Call tools as `await tools.name(args)` using the generated declarations. " +
-      "Use local computation to filter, map, count, or aggregate tool results, then print or return only the small curated result needed by the model. " +
+      "Compose several coding-tool calls into one TypeScript program and return a curated result. " +
+      "Pass `code` as the BODY of an async function; top-level `await` and `return` work. " +
+      "Call tools as `await tools.name(args)` using the generated declarations. " +
+      "Use this only when a task needs multiple tool calls, or local filtering, mapping, counting, or aggregation of their results; " +
+      "for a single read, search, or command, call that tool directly instead. " +
+      "Print or return only the small curated result needed by the model. " +
       "Each call starts in a fresh worker.",
     promptSnippet: "Compose multiple coding-tool calls in one TypeScript program and return a curated result",
     promptGuidelines: [
-      "Use run_code when several independent tool calls can be composed into one step or when the result needs local filtering, mapping, or aggregation.",
+      "Use run_code only when several tool calls must be composed into one step, or when their results need local filtering, mapping, counting, or aggregation.",
+      "Do not use run_code to wrap a single tool call; call that tool directly instead.",
       "Only print or return the small result that the model needs; do not dump entire files or large command output.",
     ],
     parameters: PARAMETERS,
